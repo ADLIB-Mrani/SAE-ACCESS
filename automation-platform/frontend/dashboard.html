@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Plan Personnalisé - PlanGenerator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-rocket-takeoff"></i> PlanGenerator
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Accueil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="bi bi-person-circle"></i> Mon Plan</a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-sm btn-outline-light ms-2" onclick="exportPDF()">
+                            <i class="bi bi-file-pdf"></i> Export PDF
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid py-4">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-3">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" 
+                                 style="width: 80px; height: 80px; font-size: 2rem;">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                        </div>
+                        <h5 class="card-title text-center" id="userName">Chargement...</h5>
+                        <p class="text-muted text-center small" id="userInfo">-</p>
+                        
+                        <hr>
+                        
+                        <div class="mb-3">
+                            <small class="text-muted">Progression</small>
+                            <div class="progress mt-2" style="height: 25px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     id="progressBar" style="width: 0%">0%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="#roadmap" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-map"></i> Roadmap
+                            </a>
+                            <a href="#tasks" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-list-check"></i> Tâches
+                            </a>
+                            <a href="#opportunities" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-star"></i> Opportunités
+                            </a>
+                            <a href="#resources" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-book"></i> Ressources
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Card -->
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title">Statistiques</h6>
+                        <div class="mb-2">
+                            <small class="text-muted">Tâches complétées</small>
+                            <h4 class="mb-0" id="completedTasks">0 / 0</h4>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">Temps estimé restant</small>
+                            <h4 class="mb-0" id="timeRemaining">-</h4>
+                        </div>
+                        <div>
+                            <small class="text-muted">Plan créé le</small>
+                            <p class="mb-0" id="createdDate">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+                <!-- Welcome Banner -->
+                <div class="alert alert-primary alert-dismissible fade show" role="alert">
+                    <h4 class="alert-heading"><i class="bi bi-rocket-takeoff"></i> Bienvenue <span id="welcomeName"></span> !</h4>
+                    <p>Ton plan personnalisé est prêt. Commence par la première tâche et coche-la une fois terminée. Tu peux aussi explorer les opportunités qui correspondent à ton profil.</p>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Plan Overview -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0" id="planTitle">Ton Plan Personnalisé</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <p class="mb-1"><strong>Objectif :</strong></p>
+                                <p id="planGoal" class="text-muted">-</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p class="mb-1"><strong>Durée :</strong></p>
+                                <p id="planDuration" class="text-muted">-</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p class="mb-1"><strong>Niveau :</strong></p>
+                                <p id="planLevel" class="text-muted">-</p>
+                            </div>
+                        </div>
+                        <p class="mb-0" id="planDescription">-</p>
+                    </div>
+                </div>
+
+                <!-- Roadmap Section -->
+                <div class="card shadow-sm mb-4" id="roadmap">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="bi bi-map"></i> Roadmap - Ton Parcours</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="roadmapContainer" class="roadmap-container">
+                            <!-- Roadmap will be generated here -->
+                        </div>
+                        
+                        <!-- Mermaid Diagram -->
+                        <div class="mt-4">
+                            <h6>Diagramme de Progression</h6>
+                            <div id="mermaidDiagram" class="mermaid">
+                                <!-- Mermaid diagram will be generated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gantt Chart -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="bi bi-calendar3"></i> Timeline - Diagramme de Gantt</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="ganttChart">
+                            <!-- Gantt chart will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tasks Section -->
+                <div class="card shadow-sm mb-4" id="tasks">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="bi bi-list-check"></i> Mes Tâches</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="tasksContainer">
+                            <!-- Tasks will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Opportunities Section -->
+                <div class="card shadow-sm mb-4" id="opportunities">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="bi bi-star"></i> Opportunités pour Toi</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Ces opportunités correspondent à ton profil et sont mises à jour régulièrement.
+                        </div>
+                        <div id="opportunitiesContainer" class="row">
+                            <!-- Opportunities will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resources Section -->
+                <div class="card shadow-sm mb-4" id="resources">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="bi bi-book"></i> Ressources Recommandées</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="resourcesContainer">
+                            <!-- Resources will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendations Section -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Recommandations Personnalisées</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="recommendationsContainer">
+                            <!-- Recommendations will be generated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">
+                <i class="bi bi-shield-check"></i> Tes données sont stockées localement et sécurisées
+            </p>
+            <p class="small text-muted mt-2">
+                PlanGenerator - Automatisation de plans personnalisés pour étudiants
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
