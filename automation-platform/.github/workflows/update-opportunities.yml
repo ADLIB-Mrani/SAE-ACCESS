@@ -1,0 +1,42 @@
+name: Update Opportunities Daily
+
+on:
+  schedule:
+    # Run every day at 9:00 AM UTC (10:00 AM Paris time)
+    - cron: '0 9 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-opportunities:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          cd automation-platform
+          npm ci
+      
+      - name: Trigger opportunity updates
+        env:
+          API_URL: ${{ secrets.API_URL }}
+          API_KEY: ${{ secrets.API_KEY }}
+        run: |
+          # Call API endpoint to trigger updates
+          curl -X POST "${API_URL}/api/updates/send-all" \
+            -H "Authorization: Bearer ${API_KEY}" \
+            -H "Content-Type: application/json"
+      
+      - name: Notification
+        if: always()
+        run: |
+          echo "Opportunity update workflow completed"
+          # You can add Slack/Discord notification here if needed
