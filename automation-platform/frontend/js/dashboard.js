@@ -324,6 +324,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Generate recommendations
     generateRecommendations(userData);
+    
+    // Set daily quote
+    setDailyQuote();
 });
 
 function generateRoadmap(phases) {
@@ -572,12 +575,249 @@ function updateProgress() {
 }
 
 function exportPDF() {
-    alert('Fonctionnalité d\'export PDF en cours de développement.\n\nPour l\'instant, vous pouvez utiliser Imprimer > Enregistrer en PDF depuis votre navigateur.');
-    // TODO: Implement jsPDF export
-    // const { jsPDF } = window.jspdf;
-    // const doc = new jsPDF();
-    // doc.text('Mon Plan Personnalisé', 10, 10);
-    // doc.save('mon-plan.pdf');
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Get user data
+        const userDataStr = localStorage.getItem('userPlan');
+        if (!userDataStr) {
+            alert('Aucune donnée à exporter');
+            return;
+        }
+        
+        const userData = JSON.parse(userDataStr);
+        const planType = userData.planType || 'programming';
+        const template = planTemplates[planType];
+        
+        // Add title
+        doc.setFontSize(20);
+        doc.setTextColor(13, 110, 253);
+        doc.text('Mon Plan Personnalisé', 105, 20, { align: 'center' });
+        
+        // Add user info
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Nom: ${userData.name}`, 20, 35);
+        doc.text(`Plan: ${template.title}`, 20, 42);
+        doc.text(`Durée: ${template.duration}`, 20, 49);
+        doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 20, 56);
+        
+        // Add line
+        doc.setDrawColor(200, 200, 200);
+        doc.line(20, 62, 190, 62);
+        
+        // Add goal
+        doc.setFontSize(14);
+        doc.setTextColor(13, 110, 253);
+        doc.text('Objectif:', 20, 72);
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        const goalLines = doc.splitTextToSize(userData.goal || template.description, 170);
+        doc.text(goalLines, 20, 80);
+        
+        let yPos = 80 + (goalLines.length * 7) + 10;
+        
+        // Add phases
+        doc.setFontSize(14);
+        doc.setTextColor(13, 110, 253);
+        doc.text('Plan d\'Action:', 20, yPos);
+        yPos += 10;
+        
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        
+        template.phases.forEach((phase, index) => {
+            if (yPos > 260) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
+            // Phase title
+            doc.setFont(undefined, 'bold');
+            doc.text(`Phase ${index + 1}: ${phase.name} (${phase.duration})`, 20, yPos);
+            yPos += 7;
+            doc.setFont(undefined, 'normal');
+            
+            // Tasks
+            phase.tasks.slice(0, 3).forEach(task => {
+                if (yPos > 270) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                const taskLines = doc.splitTextToSize(`• ${task}`, 165);
+                doc.text(taskLines, 25, yPos);
+                yPos += taskLines.length * 5 + 2;
+            });
+            
+            yPos += 5;
+        });
+        
+        // Add resources on new page
+        doc.addPage();
+        yPos = 20;
+        doc.setFontSize(14);
+        doc.setTextColor(13, 110, 253);
+        doc.text('Ressources Recommandées:', 20, yPos);
+        yPos += 10;
+        
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        template.resources.forEach(resource => {
+            if (yPos > 270) {
+                doc.addPage();
+                yPos = 20;
+            }
+            doc.setFont(undefined, 'bold');
+            doc.text(`• ${resource.name}`, 25, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(100, 100, 100);
+            doc.text(`${resource.type} - ${resource.url}`, 30, yPos + 5);
+            doc.setTextColor(0, 0, 0);
+            yPos += 12;
+        });
+        
+        // Save PDF
+        doc.save(`mon-plan-${userData.name.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+        
+        // Show success message
+        showNotification('PDF téléchargé avec succès!', 'success');
+        
+    } catch (error) {
+        console.error('Erreur export PDF:', error);
+        alert('Erreur lors de l\'export PDF. Utilisez Imprimer > Enregistrer en PDF depuis votre navigateur.');
+    }
+}
+
+// Notification system
+function showNotification(message, type = 'info') {
+    const notificationContainer = document.getElementById('notificationContainer') || createNotificationContainer();
+    
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    notificationContainer.appendChild(notification);
+    
+    // Auto dismiss after 5 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
+}
+
+function createNotificationContainer() {
+    const container = document.createElement('div');
+    container.id = 'notificationContainer';
+    container.style.cssText = 'position: fixed; top: 0; right: 0; z-index: 9999;';
+    document.body.appendChild(container);
+    return container;
+}
+
+// Email subscription
+function subscribeToUpdates() {
+    const email = prompt('Entrez votre email pour recevoir les mises à jour automatiques:');
+    
+    if (!email) return;
+    
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showNotification('Email invalide. Veuillez réessayer.', 'danger');
+        return;
+    }
+    
+    // Save email to localStorage
+    const userData = JSON.parse(localStorage.getItem('userPlan') || '{}');
+    userData.subscriptionEmail = email;
+    userData.subscribed = true;
+    userData.subscriptionDate = new Date().toISOString();
+    localStorage.setItem('userPlan', JSON.stringify(userData));
+    
+    showNotification('Abonnement réussi! Vous recevrez les mises à jour par email.', 'success');
+}
+
+// Reset plan
+function resetPlan() {
+    if (confirm('Êtes-vous sûr de vouloir réinitialiser votre plan? Toute la progression sera perdue.')) {
+        localStorage.removeItem('userPlan');
+        localStorage.removeItem('taskProgress');
+        showNotification('Plan réinitialisé avec succès', 'info');
+        setTimeout(() => {
+            window.location.href = 'form.html';
+        }, 1500);
+    }
+}
+
+// Share progress
+function shareProgress() {
+    const userData = JSON.parse(localStorage.getItem('userPlan') || '{}');
+    const checkboxes = document.querySelectorAll('.task-item input[type="checkbox"]');
+    const total = checkboxes.length;
+    const completed = Array.from(checkboxes).filter(cb => cb.checked).length;
+    const percentage = Math.round((completed / total) * 100);
+    
+    const shareText = `🚀 Mon Plan Personnalisé - PlanGenerator\n\n` +
+                     `✅ Progression: ${percentage}%\n` +
+                     `📊 Tâches: ${completed}/${total} complétées\n` +
+                     `🎯 Objectif: ${userData.goal || 'Atteindre mes objectifs'}\n\n` +
+                     `Créez votre plan sur: ${window.location.origin}${window.location.pathname.replace('dashboard.html', 'index.html')}`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'Mon Plan Personnalisé',
+            text: shareText
+        }).then(() => {
+            showNotification('Partagé avec succès!', 'success');
+        }).catch(err => {
+            // Fallback to copy
+            copyToClipboard(shareText);
+        });
+    } else {
+        copyToClipboard(shareText);
+    }
+}
+
+function copyToClipboard(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            showNotification('Texte copié dans le presse-papier!', 'success');
+        });
+    } else {
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showNotification('Texte copié dans le presse-papier!', 'success');
+    }
+}
+
+// Daily motivational quotes
+const motivationalQuotes = [
+    "Le succès est la somme de petits efforts répétés jour après jour.",
+    "La seule façon de faire du bon travail est d'aimer ce que vous faites.",
+    "L'avenir appartient à ceux qui croient en la beauté de leurs rêves.",
+    "Chaque expert a d'abord été un débutant.",
+    "Le meilleur moment pour planter un arbre était il y a 20 ans. Le deuxième meilleur moment est maintenant.",
+    "Ne regardez pas l'horloge; faites comme elle. Continuez d'avancer.",
+    "Les opportunités ne se présentent pas, c'est vous qui les créez.",
+    "La persistance est la clé du succès."
+];
+
+function setDailyQuote() {
+    const today = new Date().getDate();
+    const quote = motivationalQuotes[today % motivationalQuotes.length];
+    const quoteElement = document.getElementById('dailyQuote');
+    if (quoteElement) {
+        quoteElement.textContent = quote;
+    }
 }
 
 // Load saved progress on page load

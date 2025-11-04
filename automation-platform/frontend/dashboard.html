@@ -13,7 +13,7 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
         <div class="container">
             <a class="navbar-brand" href="index.html">
                 <i class="bi bi-rocket-takeoff"></i> PlanGenerator
@@ -22,16 +22,59 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.html">Accueil</a>
+                        <a class="nav-link" href="index.html">
+                            <i class="bi bi-house"></i> Accueil
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="#"><i class="bi bi-person-circle"></i> Mon Plan</a>
+                        <a class="nav-link active" href="#">
+                            <i class="bi bi-person-circle"></i> Mon Plan
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <button class="btn btn-sm btn-outline-light ms-2" onclick="exportPDF()">
-                            <i class="bi bi-file-pdf"></i> Export PDF
+                        <a class="nav-link" href="#opportunities">
+                            <i class="bi bi-star"></i> Opportunités
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#resources">
+                            <i class="bi bi-book"></i> Ressources
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="actionsDropdown" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-gear"></i> Actions
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionsDropdown">
+                            <li>
+                                <a class="dropdown-item" href="#" onclick="exportPDF(); return false;">
+                                    <i class="bi bi-file-pdf"></i> Télécharger PDF
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" onclick="subscribeToUpdates(); return false;">
+                                    <i class="bi bi-envelope"></i> S'abonner aux emails
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="#" onclick="window.print(); return false;">
+                                    <i class="bi bi-printer"></i> Imprimer
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" onclick="resetPlan(); return false;">
+                                    <i class="bi bi-arrow-clockwise"></i> Réinitialiser
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <button class="btn btn-sm btn-light" onclick="exportPDF()">
+                            <i class="bi bi-download"></i>
                         </button>
                     </li>
                 </ul>
@@ -83,21 +126,55 @@
                 </div>
 
                 <!-- Stats Card -->
-                <div class="card shadow-sm">
+                <div class="card shadow-sm mb-4">
                     <div class="card-body">
-                        <h6 class="card-title">Statistiques</h6>
+                        <h6 class="card-title">
+                            <i class="bi bi-graph-up text-primary"></i> Statistiques
+                        </h6>
                         <div class="mb-2">
                             <small class="text-muted">Tâches complétées</small>
-                            <h4 class="mb-0" id="completedTasks">0 / 0</h4>
+                            <h4 class="mb-0 text-success" id="completedTasks">0 / 0</h4>
                         </div>
                         <div class="mb-2">
                             <small class="text-muted">Temps estimé restant</small>
-                            <h4 class="mb-0" id="timeRemaining">-</h4>
+                            <h4 class="mb-0 text-info" id="timeRemaining">-</h4>
                         </div>
                         <div>
                             <small class="text-muted">Plan créé le</small>
                             <p class="mb-0" id="createdDate">-</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="bi bi-lightning text-warning"></i> Actions Rapides
+                        </h6>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-sm btn-outline-success" onclick="subscribeToUpdates()">
+                                <i class="bi bi-envelope"></i> S'abonner aux emails
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="exportPDF()">
+                                <i class="bi bi-download"></i> Télécharger PDF
+                            </button>
+                            <button class="btn btn-sm btn-outline-info" onclick="shareProgress()">
+                                <i class="bi bi-share"></i> Partager
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Motivation Card -->
+                <div class="card shadow-sm border-start border-4 border-primary">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="bi bi-heart-fill text-danger"></i> Citation du Jour
+                        </h6>
+                        <p class="small text-muted mb-0" id="dailyQuote">
+                            "Le succès est la somme de petits efforts répétés jour après jour."
+                        </p>
                     </div>
                 </div>
             </div>
